@@ -14,7 +14,7 @@ public class RateLimitingConfig {
         FilterRegistrationBean<Filter> registrationBean = new FilterRegistrationBean<>();
         registrationBean.setFilter(new RateLimitFilter());
         registrationBean.addUrlPatterns("/api/*"); // all api path
-        registrationBean.setOrder(1);
+        registrationBean.setOrder(1);// i have only One Filter
         return registrationBean;
     }
 }

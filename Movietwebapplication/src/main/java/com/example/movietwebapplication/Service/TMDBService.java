@@ -11,7 +11,6 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,8 +19,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class TMDBService {
 
-    private final RestTemplate restTemplate;
-    private final ObjectMapper objectMapper;
+    private final RestTemplate restTemplate; // HTTP request handling and response
+    private final ObjectMapper objectMapper; // to convert between java and JSON
 
 
     @Value("${tmdb.api.key}")
@@ -86,7 +85,7 @@ public class TMDBService {
         if (root == null || !root.has("id")) {
             return null; // not found
         }
-       return getMovieDetails(root.path("id").asText()); //reused the getMovieDetails by extract movie id
+        return getMovieDetails(root.path("id").asText()); //reused the getMovieDetails by extract movie id
 
 
     }
@@ -129,6 +128,7 @@ public class TMDBService {
 //
         JsonNode root = fetchJson("/movie/" + movieId, null);
         MovieDetailsDTO movie = new MovieDetailsDTO();
+        movie.setId(root.path("id").asText());
         movie.setTitle(root.path("title").asText());
         movie.setDescription(root.path("overview").asText());
         movie.setPoster("https://image.tmdb.org/t/p/w500" + root.path("poster_path").asText());
@@ -137,6 +137,8 @@ public class TMDBService {
         for (JsonNode genreNode : root.path("genres")) {
             genres.add(genreNode.path("name").asText());
         }
+
+        movie.setId(movieId);
         movie.setGenres(genres);
         movie.setImdbLink("https://www.imdb.com/title/" + root.path("imdb_id").asText());
 
@@ -148,7 +150,7 @@ public class TMDBService {
 
     public MovieDetailsDTO getMovieCast(String movieId) {  //Done
         List<CastDTO> castList = new ArrayList<>();
-         JsonNode root =fetchJson("/movie/" + movieId + "/credits", null);
+        JsonNode root =fetchJson("/movie/" + movieId + "/credits", null);
 
         JsonNode castArray = root.path("cast");
         MovieDetailsDTO movieDetailsDTO = getMovieDetails(movieId);
@@ -158,8 +160,8 @@ public class TMDBService {
             for (JsonNode node : castArray) {
                 member.setName(node.path("name").asText());
                 member.setCharacter(node.path("character").asText());
-
-                member.setProfileImage(node.path("profile_path").asText(null)); // null إذا لم توجد
+                member.setId(node.path("id").asText());
+                member.setProfileImage(node.path("profile_path").asText(null)); // null
                 castList.add(member);
 
                 String profilePath = cast.path("profile_path").asText();
@@ -178,6 +180,7 @@ public class TMDBService {
     public CastDetailsDTO getCastDetails(String castId) {      //Done
         JsonNode castJson = fetchJson("/person/" + castId, null);
         CastDetailsDTO castDetailsDTO = new CastDetailsDTO();
+        castDetailsDTO.setId(castJson.path("id").asText("id"));
         castDetailsDTO.setName(castJson.path("name").asText());
         castDetailsDTO.setBiography(castJson.path("biography").asText());
         castDetailsDTO.setBirthday(castJson.path("birthday").asText());
@@ -230,5 +233,35 @@ public class TMDBService {
         return response.getBody();
     }
 
+    public JsonNode getMoviesList() {
+        return fetchJson("/movie",null);
+    }
+
+    public List<MovieDetailsDTO> getFavoriteMovies(String accountId) {
+        long start = System.currentTimeMillis();
+
+        String queryParams = "session_id=" + sessionId;
+
+        // Fetch favorite movie IDs
+        JsonNode root = fetchJson("/account/" + accountId + "/favorite/movies", queryParams);
+        List<MovieDetailsDTO> favoriteMovies = new ArrayList<>();
+
+        if (root != null && root.has("results")) {
+            for (JsonNode movieNode : root.get("results")) {
+                String movieId = movieNode.path("id").asText(); // movieId as String
+
+                // Get full movie details
+                MovieDetailsDTO details = getMovieDetails(movieId);
+                if (details != null) {
+                    favoriteMovies.add(details);
+                }
+            }
+        }
+
+        long duration = System.currentTimeMillis() - start;
+        System.out.println("Fetched favorite movies in " + duration + "ms");
+
+        return favoriteMovies;
+    }
 
 }

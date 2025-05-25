@@ -13,7 +13,10 @@ import java.util.List;
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class MovieDetailsDTO {
-//DTO Out
+    //DTO Out
+    @JsonProperty("id")
+    private String id;
+    @JsonProperty("title")
     private String title;
     @JsonProperty("overview")
     private String description;

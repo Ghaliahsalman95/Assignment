@@ -16,5 +16,6 @@ public class CastDTO {
     private String character;
     @JsonProperty("profile_path")
     private String profileImage;
-
+    @JsonProperty("id")
+    private String id;
 }

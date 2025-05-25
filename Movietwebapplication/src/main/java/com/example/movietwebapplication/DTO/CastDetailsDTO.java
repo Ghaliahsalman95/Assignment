@@ -8,16 +8,16 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 
 @Data
-@NoArgsConstructor
+@NoArgsConstructor //this DTO model for json cast
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class CastDetailsDTO {
     @JsonProperty("id")
     private String id;
     @JsonProperty("name")
     private String name;
-    @JsonProperty("biography")
+    @JsonProperty("biography")//json cast
     private String biography;
-    @JsonProperty("birthday")
+    @JsonProperty("birthday")//json cast
     private String birthday;
     @JsonProperty("place_of_birth")
     private String placeOfBirth;

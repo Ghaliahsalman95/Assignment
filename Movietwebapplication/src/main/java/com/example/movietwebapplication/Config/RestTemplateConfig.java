@@ -7,12 +7,12 @@ import org.springframework.web.client.RestTemplate;
 
 @Configuration
 public class RestTemplateConfig {
-    @Bean
+    @Bean //to fetch json HTTP request and handling the response
     public RestTemplate restTemplate() {
         return new RestTemplate();
     }
 
-    @Bean
+    @Bean // to convert between java  to json object
     public ObjectMapper objectMapper() {
         return new ObjectMapper();
     }
