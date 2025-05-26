@@ -20,10 +20,10 @@ import java.util.List;
 public class TMDBService {
 
     private final RestTemplate restTemplate; // HTTP request handling and response
-    private final ObjectMapper objectMapper; // to convert between java and JSON
+    private final ObjectMapper objectMapper; // to convert between java objec and JSON
 
 
-    @Value("${tmdb.api.key}")
+    @Value("${tmdb.api.key}")//get value from properties
     private String apiKey;
 
     @Value("${tmdb.api.url}")
@@ -42,16 +42,17 @@ public class TMDBService {
 
     //helper method
 
-    private String buildUrl(String endpoint, String queryParams) {
+    private String buildUrl(String endpoint, String queryParams) { //helper method for almost methods
         return url + endpoint + "?api_key=" + apiKey + (queryParams != null ? "&" + queryParams : "");
     }
 
     //helper method
-    public JsonNode fetchJson(String endpoint, String keyword) {
+    public JsonNode fetchJson(String endpoint, String keyword) { //retriev data from http request
         String url = buildUrl(endpoint, keyword);
         String response = restTemplate.getForObject(url, String.class);
         try {
-            return objectMapper.readTree(response);
+            return objectMapper.readTree(response); // convert data from restTemplate to java object ,,
+            // i create DTOs likly fields in tmdb
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
@@ -61,7 +62,7 @@ public class TMDBService {
     //• As a user, I can search movies. maybe by keywords
     //https://api.themoviedb.org/3/search/movie?api_key=12530d7ccb5546f2a831d28f1b913ddc&query=inception
 
-    public List<MovieDetailsDTO> searchMovies(String keywords) {
+    public List<MovieDetailsDTO> searchMovies(String keywords) { // serach movie by keyword
         String queryParams = "query=" + keywords.replace(" ", "%20");
         JsonNode root = fetchJson("/search/movie", queryParams);
         JsonNode  resultsNode = root.get("results");
@@ -101,9 +102,9 @@ public class TMDBService {
 
         if (root != null && root.has("results")) {
             for (JsonNode movieNode : root.get("results")) {
-                String similarMovieId = movieNode.path("id").asText(); // Get each similar movie ID
+                String similarMovieId = movieNode.path("id").asText(); // get every similar movie id
 
-                // Step 2: Call MovieDetailsDTO for each similar movie
+                // call MovieDetailsDTO for each similar movie
                 MovieDetailsDTO details = getMovieDetails(similarMovieId);
                 if (details != null) {
                     movieDetailsDTOS.add(details);
@@ -140,7 +141,7 @@ public class TMDBService {
 
         movie.setId(movieId);
         movie.setGenres(genres);
-        movie.setImdbLink("https://www.imdb.com/title/" + root.path("imdb_id").asText());
+        movie.setImdbLink("https://www.imdb.com/title/" + root.path("imdb_id").asText()); //share ImdbLink
 
         return movie;
     }
@@ -155,7 +156,7 @@ public class TMDBService {
         JsonNode castArray = root.path("cast");
         MovieDetailsDTO movieDetailsDTO = getMovieDetails(movieId);
 
-        int limit = Math.min(castArray.size(), 10);
+        int limit = Math.min(castArray.size(), 10); //this if array less than 10 put it in loop otherwise 10
         for (int i = 0; i < limit; i++) {
             JsonNode castNode = castArray.get(i);
 
@@ -207,14 +208,16 @@ public class TMDBService {
         JsonNode castList = creditsJson.path("cast");
 
         List<CastMovieDTO> movies = new ArrayList<>(); //to show character actor in each movie
-        for (JsonNode jsonNode : castList) {
+        int count =0;
+        int limit = Math.min(castList.size(), 10); //this if array less than 10 put it in loop otherwise 10
+        for (int i = 0; i < limit; i++) {
+            count++;
             CastMovieDTO castDetail = new CastMovieDTO();
-            castDetail.setId(jsonNode.path("id").asText());
-            castDetail.setCharacter(jsonNode.path("character").asText());
-            castDetail.setTitle(jsonNode.path("title").asText());
-            castDetail.setPoster("https://image.tmdb.org/t/p/w500" + jsonNode.path("poster_path").asText());
+            castDetail.setId(castList.get(i).path("id").asText());
+            castDetail.setCharacter(castList.get(i).path("character").asText());
+            castDetail.setTitle(castList.get(i).path("title").asText());
+            castDetail.setPoster("https://image.tmdb.org/t/p/w500" + castList.get(i).path("poster_path").asText());
             movies.add(castDetail);
-
         }
         castDetailsDTO.setMovies(movies);
         return castDetailsDTO;
