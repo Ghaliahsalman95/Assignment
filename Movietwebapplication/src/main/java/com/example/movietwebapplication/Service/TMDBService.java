@@ -148,32 +148,36 @@ public class TMDBService {
     //• As a user, I can see as more movie details (Cast names and posters).
     // https://api.themoviedb.org/3/movie/{movie_id}/credits
 
-    public MovieDetailsDTO getMovieCast(String movieId) {  //Done
+    public MovieDetailsDTO getMovieCast(String movieId) {
         List<CastDTO> castList = new ArrayList<>();
-        JsonNode root =fetchJson("/movie/" + movieId + "/credits", null);
+        JsonNode root = fetchJson("/movie/" + movieId + "/credits", null);
 
         JsonNode castArray = root.path("cast");
         MovieDetailsDTO movieDetailsDTO = getMovieDetails(movieId);
-        for (int i = 0; i <= 10; i++) {//10 actors enough
-            JsonNode cast = castArray.get(i);
-            CastDTO member = new CastDTO();
-            for (JsonNode node : castArray) {
-                member.setName(node.path("name").asText());
-                member.setCharacter(node.path("character").asText());
-                member.setId(node.path("id").asText());
-                member.setProfileImage(node.path("profile_path").asText(null)); // null
-                castList.add(member);
 
-                String profilePath = cast.path("profile_path").asText();
-                member.setProfileImage(profilePath != null && !profilePath.equals("null")
-                        ? "https://image.tmdb.org/t/p/w200" + profilePath
-                        : null);
-                castList.add(member);
+        int limit = Math.min(castArray.size(), 10);
+        for (int i = 0; i < limit; i++) {
+            JsonNode castNode = castArray.get(i);
+
+            CastDTO member = new CastDTO();
+            member.setName(castNode.path("name").asText());
+            member.setCharacter(castNode.path("character").asText());
+            member.setId(castNode.path("id").asText());
+
+            String profilePath = castNode.path("profile_path").asText(null);
+            if (profilePath != null && !profilePath.equals("null")) {
+                member.setProfileImage("https://image.tmdb.org/t/p/w200" + profilePath);
+            } else {
+                member.setProfileImage(null);
             }
+
+            castList.add(member);
         }
+
         movieDetailsDTO.setCast(castList);
-        return movieDetailsDTO;//to show movie with its cast
+        return movieDetailsDTO;
     }
+
 
     //• As a user, I can see star details with the list of movies casted in.
     //https://api.themoviedb.org/3/person/{person_id}
