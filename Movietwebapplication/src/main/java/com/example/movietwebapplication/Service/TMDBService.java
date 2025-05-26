@@ -273,8 +273,8 @@ public class TMDBService {
     }
 
     public List<MovieDetailsDTO> getAllMovies() {
-        String queryParams = "page=" + 1 + "&sort_by=popularity.desc";
-        JsonNode root = fetchJson("/discover/movie", queryParams);
+        String queryParams = "page=" + 5 ;
+        JsonNode root = fetchJson("/movie/now_playing", queryParams);
 
         List<MovieDetailsDTO> movies = new ArrayList<>();
         JsonNode results = root.path("results");
