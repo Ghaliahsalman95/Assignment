@@ -69,13 +69,14 @@ public class TMDBService {
         if (resultsNode == null || !resultsNode.isArray()) {
             throw new RuntimeException("'results' field missing or not array");
         }
+        List<MovieDetailsDTO> movieDetailsDTOList=new ArrayList<>();
+        for (JsonNode node : resultsNode) {
 
-        try {
-            //  readValue convert the "results" array to  List<MovieDTO>
-            return objectMapper.readValue(resultsNode.toString(), new TypeReference<List<MovieDetailsDTO>>() {});
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to parse movie list", e);
+            movieDetailsDTOList.add(getMovieDetails(node.path("id").asText()));
         }
+
+
+        return movieDetailsDTOList;
     }
 
     //• As a user, I can see the latest movies.
@@ -197,7 +198,7 @@ public class TMDBService {
                         : null
         );
 
-        // Get movie credits
+        //  movie credits
         String creditsUrl = buildUrl("/person/" + castId + "/movie_credits", null);
         JsonNode creditsJson;
         try {
@@ -269,6 +270,26 @@ public class TMDBService {
         System.out.println("Fetched favorite movies in " + duration + "ms");
 
         return favoriteMovies;
+    }
+
+    public List<MovieDetailsDTO> getAllMovies() {
+        String queryParams = "page=" + 1 + "&sort_by=popularity.desc";
+        JsonNode root = fetchJson("/discover/movie", queryParams);
+
+        List<MovieDetailsDTO> movies = new ArrayList<>();
+        JsonNode results = root.path("results");
+
+        for (JsonNode movie : results) {
+            MovieDetailsDTO dto = new MovieDetailsDTO();
+            dto.setId(movie.path("id").asText());
+            dto.setTitle(movie.path("title").asText());
+            dto.setDescription(movie.path("overview").asText());
+            dto.setPoster("https://image.tmdb.org/t/p/w500" + movie.path("poster_path").asText());
+            dto.setImdbLink("https://www.imdb.com/title/" + root.path("imdb_id").asText()); //share ImdbLink
+            movies.add(dto);
+        }
+
+        return movies;
     }
 
 }

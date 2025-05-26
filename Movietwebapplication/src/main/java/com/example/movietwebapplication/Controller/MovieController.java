@@ -18,6 +18,12 @@ public class MovieController {
 
     private final TMDBService tmdbService ;
 
+
+    //getAllMovies
+    @GetMapping("/get-all-movies")
+    public ResponseEntity<?> getAllMovies() {
+        return ResponseEntity.status(HttpStatus.OK).body(tmdbService.getAllMovies());
+    }
     @GetMapping("/get-movie-list")
     public ResponseEntity<?> getMoviesList() {
         return ResponseEntity.status(HttpStatus.OK).body(tmdbService.getMoviesList());
